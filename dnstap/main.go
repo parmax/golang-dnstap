@@ -150,9 +150,9 @@ func main() {
 
             //log.Println(dt.Message.Type)
 	    //if *dt.Message.Type == dnstap.Message_CLIENT_QUERY || *dt.Message.Type == dnstap.Message_CLIENT_RESPONSE {
-	    if *dt.Message.Type == dnstap.Message_CLIENT_RESPONSE {
-                 target_channel <- msg
-            }
+            //if *dt.Message.Type == dnstap.Message_RESOLVER_RESPONSE || *dt.Message.Type == dnstap.Message_RESOLVER_QUERY {
+                target_channel <- msg
+            //}
         }
     }(o.GetOutputChannel())
 
