@@ -16,6 +16,7 @@
 
 package main
 
+import "github.com/golang/protobuf/proto"
 import "flag"
 import "fmt"
 import "log"
@@ -134,8 +135,26 @@ func main() {
         }
         fmt.Fprintf(os.Stderr, "dnstap: opened input socket %s\n", *flagReadSock)
     }
+  
+    filtered_channel := make(chan []byte)
 
-    go i.ReadInto(number_of_records, o.GetOutputChannel())
+    go i.ReadInto(number_of_records, filtered_channel)
+
+    go func(target_channel chan []byte) {
+        for msg := range filtered_channel {
+   	    dt := &dnstap.Dnstap{}
+            if err := proto.Unmarshal(msg, dt); err != nil {
+                log.Fatalf("dnstap.TextOutput: proto.Unmarshal() failed: %s\n", err)
+                continue
+            }
+
+            //log.Println(dt.Message.Type)
+	    //if *dt.Message.Type == dnstap.Message_CLIENT_QUERY || *dt.Message.Type == dnstap.Message_CLIENT_RESPONSE {
+	    if *dt.Message.Type == dnstap.Message_CLIENT_RESPONSE {
+                 target_channel <- msg
+            }
+        }
+    }(o.GetOutputChannel())
 
     // Wait for input loop to finish.
     i.Wait()
