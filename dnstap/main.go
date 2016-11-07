@@ -20,6 +20,7 @@ import "flag"
 import "fmt"
 import "log"
 import "os"
+import "strconv"
 import "os/signal"
 import "runtime"
 
@@ -31,6 +32,7 @@ var (
     flagWriteFile   = flag.String("w", "-", "write output to file")
     flagQuietText   = flag.Bool("q", false, "use quiet text output")
     flagYamlText    = flag.Bool("y", false, "use verbose YAML output")
+    flagNumberOfRecords = flag.String("c", "", "read only required number of records. Use -1 to read all data")
 )
 
 func usage() {
@@ -75,7 +77,18 @@ func main() {
             *flagQuietText = true
         }
     }
-    
+   
+    // Be default read all data
+    var number_of_records int64 = -1
+    if *flagNumberOfRecords != "" {
+        number_of_records, err = strconv.ParseInt(*flagNumberOfRecords, 10, 64)
+
+        if err != nil {
+            fmt.Fprintf(os.Stderr, "dnstap: incorrect number of records to read")
+            os.Exit(1)
+        }
+    }
+ 
     if *flagReadFile != "" && *flagReadSock != "" {
         fmt.Fprintf(os.Stderr, "dnstap: Error: specify exactly one of -r or -u.\n")
         os.Exit(1)
@@ -121,7 +134,8 @@ func main() {
         }
         fmt.Fprintf(os.Stderr, "dnstap: opened input socket %s\n", *flagReadSock)
     }
-    go i.ReadInto(o.GetOutputChannel())
+
+    go i.ReadInto(number_of_records, o.GetOutputChannel())
 
     // Wait for input loop to finish.
     i.Wait()

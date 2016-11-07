@@ -50,8 +50,17 @@ func NewFrameStreamInputFromFilename(fname string) (input *FrameStreamInput, err
     return
 }
 
-func (input *FrameStreamInput) ReadInto(output chan []byte) {
+func (input *FrameStreamInput) ReadInto(number_of_records int64, output chan []byte) {
+    var current_iteration int64 = 0
+    
     for {
+        current_iteration++
+
+        // If we need only certain number of records just stop loop
+        if number_of_records != -1 && current_iteration > number_of_records {
+            break
+        } 
+
         buf, err := input.decoder.Decode()
         if err != nil {
             if err != io.EOF {

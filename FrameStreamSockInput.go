@@ -40,7 +40,7 @@ func NewFrameStreamSockInputFromPath(socketPath string) (input *FrameStreamSockI
     return NewFrameStreamSockInput(listener), nil
 }
 
-func (input *FrameStreamSockInput) ReadInto(output chan []byte) {
+func (input *FrameStreamSockInput) ReadInto(number_of_records int64, output chan []byte) {
     for {
         conn, err := input.listener.Accept()
         if err != nil {
@@ -53,7 +53,7 @@ func (input *FrameStreamSockInput) ReadInto(output chan []byte) {
             continue
         }
         log.Printf("dnstap.FrameStreamSockInput: accepted a socket connection\n")
-        go i.ReadInto(output)
+        go i.ReadInto(number_of_records, output)
     }
 }
 
