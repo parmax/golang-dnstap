@@ -157,6 +157,7 @@ func TextFormat(dt *Dnstap) (out []byte, ok bool) {
 
     if *dt.Type == Dnstap_MESSAGE {
         textConvertMessage(dt.Message, &s)
+        s.WriteString("extra: " + string(dt.Extra))
         return s.Bytes(), true
     }
 
